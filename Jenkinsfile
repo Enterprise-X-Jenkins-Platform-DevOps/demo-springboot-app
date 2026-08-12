@@ -1,14 +1,16 @@
 pipeline {
+
     agent {
         label 'java'
     }
 
     options {
         timestamps()
-        timeout(time: 10, unit: 'MINUTES')
+        timeout(time: 20, unit: 'MINUTES')
     }
 
     stages {
+
         stage('Environment') {
             steps {
                 sh '''
@@ -18,17 +20,11 @@ pipeline {
                     echo "=== USER ==="
                     whoami
 
-                    echo "=== HOST ==="
-                    hostname
-
                     echo "=== JAVA ==="
                     java -version
 
                     echo "=== MAVEN ==="
                     mvn -version
-
-                    echo "=== GIT ==="
-                    git --version
                 '''
             }
         }
@@ -39,9 +35,30 @@ pipeline {
             }
         }
 
-        stage('Tests') {
+        stage('Tests & Coverage') {
             steps {
-                sh 'mvn -B test'
+                sh 'mvn -B verify'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube-local') {
+                    sh '''
+                        mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                          -Dsonar.projectKey=enterprise-x:demo-springboot-app \
+                          -Dsonar.projectName=demo-springboot-app \
+                          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
@@ -53,9 +70,10 @@ pipeline {
     }
 
     post {
+
         always {
             junit allowEmptyResults: true,
-                  testResults: '**/target/surefire-reports/*.xml'
+            testResults: '**/target/surefire-reports/*.xml'
         }
 
         success {
