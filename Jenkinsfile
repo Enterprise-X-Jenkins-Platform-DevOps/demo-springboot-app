@@ -65,7 +65,7 @@ pipeline {
                     ]) {
                     sh '''
                 mvn -B \
-                  org.owasp:dependency-check-maven:12.1.3:check \
+                  org.owasp:dependency-check-maven:12.1.6:check \
                   -DnvdApiKeyEnvironmentVariable=NVD_API_KEY \
                   -DdataDirectory=/home/jenkins/.dependency-check \
                   -Dformats=HTML,JSON \
