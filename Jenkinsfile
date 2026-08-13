@@ -45,11 +45,12 @@ pipeline {
             steps {
                 sh '''
             semgrep scan \
-              --config auto \
+              --config semgrep/rules/java-security.yml \
               --exclude target \
               --json \
               --output semgrep-results.json \
-              . || true
+              --error \
+              .
         '''
             }
         }
@@ -87,6 +88,9 @@ pipeline {
         always {
             junit allowEmptyResults: true,
             testResults: '**/target/surefire-reports/*.xml'
+
+            archiveArtifacts artifacts: 'semgrep-results.json',
+            allowEmptyArchive: true
         }
 
         success {

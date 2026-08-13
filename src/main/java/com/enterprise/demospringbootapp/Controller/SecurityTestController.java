@@ -5,6 +5,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SecurityTestController {
 
-    private static final String PASSWORD = "SuperSecretPassword123";
+    private static final String DB_PASSWORD = "SuperSecretPassword123";
 
 }
