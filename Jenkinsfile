@@ -55,6 +55,26 @@ pipeline {
             }
         }
 
+        stage('SCA - Dependency Check') {
+            steps {
+                withCredentials([
+                        string(
+                            credentialsId: 'nvd-api-key',
+                            variable: 'NVD_API_KEY'
+                        )
+                    ]) {
+                    sh '''
+                mvn -B \
+                  org.owasp:dependency-check-maven:12.1.3:check \
+                  -DnvdApiKeyEnvironmentVariable=NVD_API_KEY \
+                  -DdataDirectory=/home/jenkins/.dependency-check \
+                  -Dformats=HTML,JSON \
+                  -DfailBuildOnCVSS=9
+            '''
+                }
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-local') {
@@ -84,12 +104,18 @@ pipeline {
     }
 
     post {
-
         always {
+
             junit allowEmptyResults: true,
             testResults: '**/target/surefire-reports/*.xml'
 
             archiveArtifacts artifacts: 'semgrep-results.json',
+            allowEmptyArchive: true
+
+            archiveArtifacts artifacts: '**/target/dependency-check-report.html',
+            allowEmptyArchive: true
+
+            archiveArtifacts artifacts: '**/target/dependency-check-report.json',
             allowEmptyArchive: true
         }
 
