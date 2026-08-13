@@ -41,6 +41,19 @@ pipeline {
             }
         }
 
+        stage('Semgrep SAST') {
+            steps {
+                sh '''
+            semgrep scan \
+              --config auto \
+              --exclude target \
+              --json \
+              --output semgrep-results.json \
+              . || true
+        '''
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-local') {
