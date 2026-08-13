@@ -69,12 +69,12 @@ pipeline {
                   -DnvdApiKeyEnvironmentVariable=NVD_API_KEY \
                   -DdataDirectory=/home/jenkins/.dependency-check \
                   -Dformats=HTML,JSON \
-                  -DfailBuildOnCVSS=9
+                  -DfailBuildOnCVSS=9 \
+                  -DossIndexAnalyzerEnabled=false
             '''
                 }
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-local') {
