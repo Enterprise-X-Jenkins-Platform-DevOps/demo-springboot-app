@@ -43,15 +43,25 @@ pipeline {
 
         stage('Semgrep SAST') {
             steps {
-                sh '''
-            semgrep scan \
-              --config semgrep/rules/java-security.yml \
-              --exclude target \
-              --json \
-              --output semgrep-results.json \
-              --error \
-              .
-        '''
+                withCredentials([
+                        string(
+                            credentialsId: 'semgrep-app-token',
+                            variable: 'SEMGREP_APP_TOKEN'
+                        )
+                    ]) {
+                    sh '''
+                export SEMGREP_REPO_NAME="Enterprise-X-Jenkins-Platform-DevOps/demo-springboot-app"
+                export SEMGREP_REPO_URL="https://github.com/Enterprise-X-Jenkins-Platform-DevOps/demo-springboot-app"
+                export SEMGREP_BRANCH="${BRANCH_NAME}"
+                export SEMGREP_COMMIT="${GIT_COMMIT}"
+                export SEMGREP_JOB_URL="${BUILD_URL}"
+
+                semgrep ci \
+                  --exclude target \
+                  --exclude .idea \
+                  --exclude .mvn
+            '''
+                }
             }
         }
 
